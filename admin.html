@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Casa Pilla</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--sea:#1d5f7a;--sea2:#2e87ab;--sand:#f4f0ea;--cream:#fdfaf5;--ink:#1c2b35;--muted:#7a8e98;--border:#e0d8cc;--white:#fff;--red:#b91c1c;--redbg:#fee2e2;--redborder:#fca5a5;--green:#15803d;}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--sand);color:var(--ink);min-height:100vh;}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
+.login-card{background:var(--white);border-radius:20px;box-shadow:0 24px 64px rgba(15,74,97,.13);width:100%;max-width:380px;overflow:hidden;}
+.login-top{background:linear-gradient(135deg,var(--sea),var(--sea2));padding:2rem;text-align:center;}
+.login-top h1{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;margin-bottom:.3rem;}
+.login-top p{font-size:.78rem;color:rgba(255,255,255,.6);}
+.login-body{padding:1.8rem;}
+.lbl{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.4rem;}
+.linput{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:'Jost',sans-serif;font-size:.9rem;color:var(--ink);outline:none;background:var(--cream);margin-bottom:.8rem;transition:border-color .15s;}
+.linput:focus{border-color:var(--sea);}
+.lerr{font-size:.78rem;color:var(--red);margin-bottom:.8rem;display:none;}
+.lerr.on{display:block;}
+#adminScreen{display:none;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:230px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sb-logo{padding:1.4rem;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo h2{font-family:'Playfair Display',serif;font-size:1rem;color:#fff;}
+.sb-logo p{font-size:.68rem;color:rgba(255,255,255,.3);margin-top:.2rem;}
+.sb-nav{padding:.8rem 0;flex:1;}
+.sb-sec{font-size:.57rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.22);padding:.5rem 1.2rem;margin-top:.4rem;}
+.sb-item{display:flex;align-items:center;gap:.6rem;padding:.62rem 1.2rem;font-size:.82rem;color:rgba(255,255,255,.5);cursor:pointer;transition:background .15s,color .15s;border-left:3px solid transparent;}
+.sb-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.sb-item.active{background:rgba(29,95,122,.22);color:#fff;border-left-color:var(--sea2);}
+.sb-footer{padding:1rem 1.2rem;border-top:1px solid rgba(255,255,255,.07);}
+.sb-fb{display:flex;align-items:center;gap:.5rem;font-size:.7rem;color:rgba(255,255,255,.28);}
+.sb-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;}
+.sb-dot.ok{background:#22c55e;}
+.sb-dot.err{background:var(--red);}
+.sb-out{display:block;width:100%;margin-top:.7rem;padding:.5rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.38);border-radius:8px;font-size:.74rem;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s;}
+.sb-out:hover{background:rgba(255,255,255,.1);color:#fff;}
+.main{flex:1;padding:2rem;max-width:860px;}
+.pg-title{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--ink);margin-bottom:.25rem;}
+.pg-sub{font-size:.82rem;color:var(--muted);margin-bottom:1.8rem;}
+.tab{display:none;}
+.tab.active{display:block;}
+.card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:1.1rem;}
+.card-t{font-family:'Playfair Display',serif;font-size:.98rem;color:var(--ink);margin-bottom:.9rem;}
+.fg{display:flex;flex-direction:column;gap:.28rem;margin-bottom:.85rem;}
+.fg label{font-size:.59rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.fg input,.fg textarea,.fg select{padding:.62rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'Jost',sans-serif;font-size:.86rem;color:var(--ink);outline:none;background:var(--cream);transition:border-color .15s;width:100%;}
+.fg input:focus,.fg textarea:focus{border-color:var(--sea);}
+.fg textarea{resize:vertical;min-height:80px;}
+.fgr2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+.btn{padding:.68rem 1.4rem;background:var(--sea);color:#fff;border:none;border-radius:9px;font-family:'Jost',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;}
+.btn:hover{background:var(--sea2);transform:translateY(-1px);}
+.btn-del{padding:.45rem .9rem;background:var(--redbg);color:var(--red);border:1px solid var(--redborder);border-radius:7px;font-family:'Jost',sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;}
+.btn-del:hover{background:#fecaca;}
+.ok-msg{display:inline-flex;align-items:center;gap:.35rem;font-size:.76rem;color:var(--green);margin-left:.7rem;opacity:0;transition:opacity .3s;}
+.ok-msg.on{opacity:1;}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;}
+.pcell{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:.8rem;text-align:center;}
+.pcell label{font-size:.59rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:.35rem;}
+.pcell input{width:100%;text-align:center;padding:.5rem;border:1.5px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:.95rem;font-weight:600;color:var(--sea);background:var(--white);outline:none;}
+.pcell input:focus{border-color:var(--sea);}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+.cal-title{font-family:'Playfair Display',serif;font-size:.98rem;color:var(--sea);}
+.cal-btn{width:27px;height:27px;border:1px solid var(--border);background:var(--white);border-radius:6px;cursor:pointer;font-size:1rem;color:var(--sea);display:flex;align-items:center;justify-content:center;}
+.cal-btn:disabled{opacity:.2;cursor:default;}
+.cal-leg{display:flex;gap:.9rem;margin-bottom:.7rem;}
+.cl-item{display:flex;align-items:center;gap:.32rem;font-size:.71rem;color:var(--muted);}
+.cl-dot{width:11px;height:11px;border-radius:3px;}
+.cl-dot.free{background:var(--cream);border:1.5px solid var(--border);}
+.cl-dot.blk{background:var(--redbg);border:1.5px solid var(--redborder);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:.9rem;}
+.cdn{text-align:center;font-size:.57rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:.22rem 0 .45rem;}
+.cd{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:.77rem;border-radius:6px;cursor:pointer;transition:background .12s;user-select:none;border:1.5px solid transparent;}
+.cd.gap{cursor:default;background:transparent;border:none;}
+.cd.past{color:#ccc;cursor:not-allowed;}
+.cd.free{background:var(--cream);border-color:var(--border);}
+.cd.free:hover{background:rgba(29,95,122,.1);border-color:var(--sea);color:var(--sea);}
+.cd.blk{background:var(--redbg);border-color:var(--redborder);color:var(--red);font-weight:600;}
+.cd.blk:hover{background:#fecaca;}
+.tags{display:flex;flex-wrap:wrap;gap:.38rem;margin-top:.4rem;}
+.tag{display:flex;align-items:center;gap:.28rem;background:var(--redbg);border:1px solid var(--redborder);color:var(--red);border-radius:999px;padding:.22rem .65rem;font-size:.74rem;}
+.tag button{background:none;border:none;color:var(--red);cursor:pointer;font-size:.88rem;line-height:1;}
+.empty{font-size:.81rem;color:var(--muted);font-style:italic;}
+.rev-card{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:.95rem 1.1rem;margin-bottom:.65rem;display:flex;align-items:flex-start;justify-content:space-between;gap:.9rem;}
+.rev-stars{font-size:.88rem;margin-bottom:.28rem;}
+.rev-text{font-size:.82rem;color:var(--ink);line-height:1.6;font-style:italic;margin-bottom:.28rem;}
+.rev-meta{font-size:.71rem;color:var(--muted);}
+.rev-name{font-weight:600;color:var(--sea);}
+.toast{position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:#fff;padding:.58rem 1.3rem;border-radius:999px;font-size:.79rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:9999;white-space:nowrap;}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+@media(max-width:680px){.sidebar{display:none;}.main{padding:1.1rem;}.price-grid,.fgr2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-top"><h1>Casa Pilla</h1><p>Pannello di amministrazione</p></div>
+    <div class="login-body">
+      <label class="lbl">Password</label>
+      <input class="linput" type="password" id="pwdInput" placeholder="••••••••">
+      <div class="lerr" id="loginErr">Password errata. Riprova.</div>
+      <button class="btn" style="width:100%" onclick="doLogin()">Accedi →</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminScreen">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sb-logo"><h2>Casa Pilla</h2><p>Pannello Admin</p></div>
+      <div class="sb-nav">
+        <div class="sb-sec">Gestione</div>
+        <div class="sb-item active" onclick="showTab('disponibilita',this)"><span>📅</span> Disponibilità</div>
+        <div class="sb-item" onclick="showTab('tariffe',this)"><span>💶</span> Tariffe</div>
+        <div class="sb-item" onclick="showTab('recensioni',this)"><span>⭐</span> Recensioni</div>
+        <div class="sb-sec">Contenuti</div>
+        <div class="sb-item" onclick="showTab('testi',this)"><span>✏️</span> Testi sito</div>
+        <div class="sb-item" onclick="showTab('contatti',this)"><span>📞</span> Contatti</div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-fb"><div class="sb-dot" id="fbDot"></div><span id="fbTxt">Connessione…</span></div>
+        <button class="sb-out" onclick="doLogout()">🚪 Esci</button>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <div class="tab active" id="tab-disponibilita">
+        <div class="pg-title">📅 Disponibilità</div>
+        <div class="pg-sub">Clicca su una data per bloccarla o sbloccarla.</div>
+        <div class="card">
+          <div class="cal-nav">
+            <button class="cal-btn" id="calBack" onclick="calNav(-1)">‹</button>
+            <span class="cal-title" id="calTitle"></span>
+            <button class="cal-btn" id="calFwd" onclick="calNav(1)">›</button>
+          </div>
+          <div class="cal-leg">
+            <div class="cl-item"><div class="cl-dot free"></div>Disponibile</div>
+            <div class="cl-item"><div class="cl-dot blk"></div>Bloccata</div>
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+        <div class="card">
+          <div class="card-t">🔴 Date bloccate</div>
+          <div id="blockedTags"><div class="empty">Nessuna data bloccata</div></div>
+        </div>
+      </div>
+
+      <div class="tab" id="tab-tariffe">
+        <div class="pg-title">💶 Tariffe</div>
+        <div class="pg-sub">Prezzi per notte. Luglio=mese JS 6, Agosto=7, Settembre=8.</div>
+        <div class="card">
+          <div class="card-t">☀️ Luglio</div>
+          <div class="price-grid">
+            <div class="pcell"><label>1 ospite</label><input type="number" id="p_7_1" min="0"></div>
+            <div class="pcell"><label>2 ospiti</label><input type="number" id="p_7_2" min="0"></div>
+            <div class="pcell"><label>3 ospiti</label><input type="number" id="p_7_3" min="0"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-t">🌞 Agosto</div>
+          <div class="price-grid">
+            <div class="pcell"><label>1 ospite</label><input type="number" id="p_8_1" min="0"></div>
+            <div class="pcell"><label>2 ospiti</label><input type="number" id="p_8_2" min="0"></div>
+            <div class="pcell"><label>3 ospiti</label><input type="number" id="p_8_3" min="0"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-t">🍂 Settembre</div>
+          <div class="price-grid">
+            <div class="pcell"><label>1 ospite</label><input type="number" id="p_9_1" min="0"></div>
+            <div class="pcell"><label>2 ospiti</label><input type="number" id="p_9_2" min="0"></div>
+            <div class="pcell"><label>3 ospiti</label><input type="number" id="p_9_3" min="0"></div>
+          </div>
+        </div>
+        <button class="btn" onclick="savePrices()">💾 Salva tariffe</button>
+        <span class="ok-msg" id="priceOk">✅ Salvato!</span>
+        <p style="margin-top:.8rem;font-size:.75rem;color:var(--muted)">⚠️ Dopo aver salvato, ricarica il sito principale per vedere i nuovi prezzi.</p>
+      </div>
+
+      <div class="tab" id="tab-recensioni">
+        <div class="pg-title">⭐ Recensioni</div>
+        <div class="pg-sub">Gestisci le recensioni degli ospiti.</div>
+        <div class="card"><div id="revList"><div class="empty">Caricamento…</div></div></div>
+      </div>
+
+      <div class="tab" id="tab-testi">
+        <div class="pg-title">✏️ Testi sito</div>
+        <div class="pg-sub">Modifica i testi principali della pagina.</div>
+        <div class="card">
+          <div class="card-t">🏠 Hero</div>
+          <div class="fg"><label>Titolo principale</label><input type="text" id="t_title" placeholder="Casa Pilla"></div>
+          <div class="fg"><label>Sottotitolo</label><input type="text" id="t_sub" placeholder="il tuo angolo di mare"></div>
+          <div class="fg"><label>Citazione hero</label><textarea id="t_quote"></textarea></div>
+          <div class="fg"><label>Frase in grassetto</label><input type="text" id="t_strong"></div>
+          <button class="btn" onclick="saveTexts()">💾 Salva testi</button>
+          <span class="ok-msg" id="textsOk">✅ Salvato!</span>
+        </div>
+        <div class="card">
+          <div class="card-t">🪪 Legale</div>
+          <div class="fg"><label>Codice CIN</label><input type="text" id="t_cin" placeholder="IT070078C26J4SM2TV"></div>
+          <button class="btn" onclick="saveCin()">💾 Salva</button>
+          <span class="ok-msg" id="cinOk">✅ Salvato!</span>
+        </div>
+      </div>
+
+      <div class="tab" id="tab-contatti">
+        <div class="pg-title">📞 Contatti</div>
+        <div class="pg-sub">Modifica le informazioni di contatto del sito.</div>
+        <div class="card">
+          <div class="fg"><label>Telefono / WhatsApp</label><input type="text" id="c_phone" placeholder="+39 329 189 9767"></div>
+          <div class="fg"><label>Email</label><input type="email" id="c_email" placeholder="arturoborrelli63@gmail.com"></div>
+          <div class="fgr2">
+            <div class="fg"><label>Città</label><input type="text" id="c_city" placeholder="Termoli"></div>
+            <div class="fg"><label>Regione · Paese</label><input type="text" id="c_region" placeholder="Molise · Italia"></div>
+          </div>
+          <button class="btn" onclick="saveContacts()">💾 Salva contatti</button>
+          <span class="ok-msg" id="contactsOk">✅ Salvato!</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const FB_CFG = {
+  apiKey:      'AIzaSyDiCvu5yjd-XAxlM9f-3ETOblQU96yAMqY',
+  authDomain:  'casa-pilla.firebaseapp.com',
+  databaseURL: 'https://casa-pilla-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId:   'casa-pilla',
+};
+const PWD = 'casapilla2026';
+const MESI_FULL = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const GG = ['Lu','Ma','Me','Gi','Ve','Sa','Do'];
+// Prezzi default (indici JS: 6=lug, 7=ago, 8=set)
+const DEF_P = {6:{1:80,2:90,3:105},7:{1:90,2:110,3:135},8:{1:75,2:80,3:90}};
+
+let fbR,fbSet,fbRm,fbGet,fbOn;
+let BLOCKED = new Set();
+let calM = {y:2026, m:6};
+let reviews = {};
+
+window.doLogin = () => {
+  if(document.getElementById('pwdInput').value === PWD){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('adminScreen').style.display='block';
+    initFB();
+  } else {
+    document.getElementById('loginErr').classList.add('on');
+    document.getElementById('pwdInput').value='';
+  }
+};
+window.doLogout = () => {
+  document.getElementById('adminScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('pwdInput').value='';
+};
+document.getElementById('pwdInput').onkeydown = e => { if(e.key==='Enter') window.doLogin(); };
+
+async function initFB(){
+  try{
+    const {initializeApp,getApps} = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const fb = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+    if(!getApps().length) initializeApp(FB_CFG);
+    const db = fb.getDatabase();
+    fbR=p=>fb.ref(db,p); fbSet=fb.set; fbRm=fb.remove; fbGet=fb.get; fbOn=fb.onValue;
+    dot('ok','Firebase connesso');
+
+    fbOn(fbR('blocked_dates'), s => {
+      BLOCKED=new Set(Object.keys(s.val()||{}).map(k=>k.replace(/_/g,'-')));
+      renderCal(); renderTags();
+    });
+    fbOn(fbR('reviews'), s => { reviews=s.val()||{}; renderRevs(); });
+    // get() diretto come fallback
+    fbGet(fbR('reviews')).then(s=>{ reviews=s.val()||{}; renderRevs(); });
+
+    loadSettings();
+  } catch(e){ dot('err','Errore Firebase'); console.error(e); }
+}
+
+window.showTab = (name,el) => {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+};
+
+// ── CALENDARIO
+window.calNav = dir => {
+  calM.m+=dir;
+  if(calM.m<6)calM.m=6; if(calM.m>8)calM.m=8;
+  renderCal();
+};
+function renderCal(){
+  const {y,m}=calM;
+  document.getElementById('calTitle').textContent=MESI_FULL[m]+' '+y;
+  document.getElementById('calBack').disabled=m<=6;
+  document.getElementById('calFwd').disabled=m>=8;
+  let h=''; GG.forEach(g=>h+=`<div class="cdn">${g}</div>`);
+  let off=new Date(y,m,1).getDay()-1; if(off<0)off=6;
+  for(let i=0;i<off;i++)h+='<div class="cd gap"></div>';
+  const days=new Date(y,m+1,0).getDate();
+  const today=new Date(); today.setHours(0,0,0,0);
+  for(let d=1;d<=days;d++){
+    const dt=new Date(y,m,d); dt.setHours(0,0,0,0);
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const past=dt<today,blk=BLOCKED.has(key);
+    let cls='cd'+(past?' past':blk?' blk':' free');
+    const oc=past?'':` onclick="tog(${y},${m},${d})"`;
+    h+=`<div class="${cls}"${oc}>${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=h;
+}
+window.tog=async(y,m,d)=>{
+  const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const fk=key.replace(/-/g,'_');
+  if(BLOCKED.has(key)){await fbRm(fbR('blocked_dates/'+fk));toast('✅ Sbloccata');}
+  else{await fbSet(fbR('blocked_dates/'+fk),true);toast('🔒 Bloccata');}
+};
+function renderTags(){
+  const el=document.getElementById('blockedTags');
+  const s=[...BLOCKED].sort();
+  if(!s.length){el.innerHTML='<div class="empty">Nessuna data bloccata</div>';return;}
+  el.innerHTML='<div class="tags">'+s.map(k=>{
+    const[y,mo,d]=k.split('-').map(Number);
+    const lbl=new Date(y,mo-1,d).toLocaleDateString('it-IT',{day:'numeric',month:'short'});
+    return`<div class="tag">${lbl}<button onclick="rmTag('${k.replace(/-/g,'_')}')">×</button></div>`;
+  }).join('')+'</div>';
+}
+window.rmTag=async fk=>{await fbRm(fbR('blocked_dates/'+fk));toast('✅ Rimossa');};
+
+// ── PREZZI
+// Admin salva: 7=luglio, 8=agosto, 9=settembre (per chiarezza UI)
+// Index usa: PRICES={6:lug, 7:ago, 8:set} (indici JS)
+// Mapping: admin 7→index 6, admin 8→index 7, admin 9→index 8
+async function loadSettings(){
+  try{
+    const ps=await fbGet(fbR('settings/prices'));
+    const p=ps.val();
+    if(p){
+      // Mostra in UI: admin usa 7,8,9
+      if(p[7])[1,2,3].forEach(n=>{const e=document.getElementById(`p_7_${n}`);if(e)e.value=p[7][n]||'';});
+      if(p[8])[1,2,3].forEach(n=>{const e=document.getElementById(`p_8_${n}`);if(e)e.value=p[8][n]||'';});
+      if(p[9])[1,2,3].forEach(n=>{const e=document.getElementById(`p_9_${n}`);if(e)e.value=p[9][n]||'';});
+    } else {
+      // Default
+      [1,2,3].forEach(n=>{
+        const e7=document.getElementById(`p_7_${n}`); if(e7)e7.value=DEF_P[6][n];
+        const e8=document.getElementById(`p_8_${n}`); if(e8)e8.value=DEF_P[7][n];
+        const e9=document.getElementById(`p_9_${n}`); if(e9)e9.value=DEF_P[8][n];
+      });
+    }
+    const ts=await fbGet(fbR('settings/texts'));
+    const t=ts.val()||{};
+    sv('t_title',t.title||'Casa Pilla');
+    sv('t_sub',t.sub||'il tuo angolo di mare');
+    sv('t_quote',t.quote||'Svegliarsi con il profumo del mare, passeggiare tra i vicoli del borgo medievale,\ntornare a casa con la sabbia ancora tra le dita.');
+    sv('t_strong',t.strong||"Questa estate, vivi Termoli come non l'hai mai vissuta.");
+    sv('t_cin',t.cin||'IT070078C26J4SM2TV');
+    const cs=await fbGet(fbR('settings/contacts'));
+    const c=cs.val()||{};
+    sv('c_phone',c.phone||'+39 329 189 9767');
+    sv('c_email',c.email||'arturoborrelli63@gmail.com');
+    sv('c_city',c.city||'Termoli');
+    sv('c_region',c.region||'Molise · Italia');
+  }catch(e){console.error('loadSettings',e);}
+}
+
+window.savePrices=async()=>{
+  // Salva con chiavi 7,8,9 (luglio,agosto,settembre)
+  const p={7:{},8:{},9:{}};
+  [1,2,3].forEach(n=>{
+    p[7][n]=parseInt(document.getElementById(`p_7_${n}`).value)||0;
+    p[8][n]=parseInt(document.getElementById(`p_8_${n}`).value)||0;
+    p[9][n]=parseInt(document.getElementById(`p_9_${n}`).value)||0;
+  });
+  // Salva anche con chiavi index JS per compatibilità diretta
+  const pIdx={6:p[7],7:p[8],8:p[9]};
+  await fbSet(fbR('settings/prices'),{...p,...pIdx});
+  flash('priceOk');toast('💾 Tariffe salvate!');
+};
+
+// ── RECENSIONI
+function renderRevs(){
+  const el=document.getElementById('revList');
+  const keys=Object.keys(reviews).sort().reverse();
+  if(!keys.length){el.innerHTML='<div class="empty">Nessuna recensione ancora</div>';return;}
+  el.innerHTML=keys.map(k=>{
+    const r=reviews[k];
+    const stars='⭐'.repeat(r.stars||5);
+    const date=new Date(r.ts).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+    return`<div class="rev-card">
+      <div>
+        <div class="rev-stars">${stars}</div>
+        <div class="rev-text">"${r.text}"</div>
+        <div class="rev-meta"><span class="rev-name">— ${r.name}</span> · ${date}</div>
+      </div>
+      <button class="btn-del" onclick="delRev('${k}')">🗑</button>
+    </div>`;
+  }).join('');
+}
+window.delRev=async k=>{
+  if(!confirm('Eliminare questa recensione?'))return;
+  await fbRm(fbR('reviews/'+k));toast('🗑 Eliminata');
+};
+
+// ── TESTI
+window.saveTexts=async()=>{
+  await fbSet(fbR('settings/texts'),{
+    title:document.getElementById('t_title').value,
+    sub:document.getElementById('t_sub').value,
+    quote:document.getElementById('t_quote').value,
+    strong:document.getElementById('t_strong').value,
+    cin:document.getElementById('t_cin').value,
+  });
+  flash('textsOk');toast('💾 Testi salvati!');
+};
+window.saveCin=async()=>{
+  const s=await fbGet(fbR('settings/texts'));
+  const cur=s.val()||{};
+  cur.cin=document.getElementById('t_cin').value;
+  await fbSet(fbR('settings/texts'),cur);
+  flash('cinOk');toast('💾 Salvato!');
+};
+
+// ── CONTATTI
+window.saveContacts=async()=>{
+  await fbSet(fbR('settings/contacts'),{
+    phone:document.getElementById('c_phone').value,
+    email:document.getElementById('c_email').value,
+    city:document.getElementById('c_city').value,
+    region:document.getElementById('c_region').value,
+  });
+  flash('contactsOk');toast('💾 Contatti salvati!');
+};
+
+// ── UTILS
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function dot(s,t){document.getElementById('fbDot').className='sb-dot '+s;document.getElementById('fbTxt').textContent=t;}
+function flash(id){const e=document.getElementById(id);e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2500);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+renderCal();
+</script>
+</body>
+</html>
