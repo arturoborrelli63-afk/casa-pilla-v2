@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Lascia una recensione · Casa Pilla</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --sea:#1d5f7a;--sea2:#2e87ab;--sand:#f7f2ea;--cream:#fdfaf5;
+  --terra:#c26a3e;--ink:#1c2b35;--muted:#7a8e98;--border:#e0d8cc;--white:#ffffff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Jost',sans-serif;background:var(--sand);color:var(--ink);min-height:100svh;display:flex;flex-direction:column}
+
+/* ── HEADER ── */
+.rv-header{
+  background:linear-gradient(135deg,#0a1e2b 0%,#0f2d40 40%,#1a4d6b 100%);
+  padding:2.5rem 1.5rem 3rem;text-align:center;position:relative;overflow:hidden;
+}
+.rv-header::after{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.03) 1px,transparent 0);
+  background-size:36px 36px;pointer-events:none;
+}
+.rv-header-eyebrow{
+  font-size:.68rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+  color:rgba(168,220,240,.8);margin-bottom:1rem;
+}
+.rv-header h1{
+  font-family:'Cinzel',serif;font-weight:300;letter-spacing:.08em;
+  font-size:clamp(2rem,8vw,3.5rem);color:#fff;
+  background:linear-gradient(135deg,#fff 0%,#c8e8f5 50%,#fff 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:.4rem;
+}
+.rv-header p{font-size:.92rem;color:rgba(255,255,255,.55);font-weight:300;margin-top:.5rem}
+.rv-header-waves{position:absolute;bottom:0;left:0;right:0;pointer-events:none}
+.rv-header-waves svg{display:block;width:100%}
+
+/* ── MAIN ── */
+main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:3rem 1.5rem 4rem}
+
+/* ── CARD ── */
+.rv-card{
+  background:var(--white);border:1px solid var(--border);border-radius:20px;
+  box-shadow:0 8px 48px rgba(28,43,53,.1);padding:2.5rem 2rem;
+  width:100%;max-width:520px;
+}
+@media(max-width:480px){.rv-card{padding:1.8rem 1.4rem}}
+
+.rv-card-title{
+  font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;
+  color:var(--sea);margin-bottom:.3rem;
+}
+.rv-card-sub{font-size:.85rem;color:var(--muted);margin-bottom:2rem;line-height:1.5}
+
+/* ── STAR PICKER ── */
+.star-label{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:.55rem;display:block}
+.star-picker{display:flex;gap:.3rem;margin-bottom:1.6rem;flex-direction:row-reverse;justify-content:flex-end}
+.star-picker input{display:none}
+.star-picker label{
+  font-size:2rem;cursor:pointer;color:#d9c9b8;
+  transition:color .12s,transform .12s;line-height:1;
+  display:inline-block;
+}
+.star-picker label:hover,
+.star-picker label:hover ~ label,
+.star-picker input:checked ~ label{color:#f59e0b}
+.star-picker label:hover{transform:scale(1.15)}
+.star-val{font-size:.8rem;color:var(--muted);margin-top:-.8rem;margin-bottom:1.4rem;min-height:1.1rem}
+
+/* ── FORM FIELDS ── */
+.ff{display:flex;flex-direction:column;gap:.35rem;margin-bottom:1.1rem}
+.ff label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ff input,.ff textarea{
+  font-family:'Jost',sans-serif;font-size:.93rem;padding:.72rem .9rem;
+  border:1.5px solid var(--border);border-radius:9px;background:var(--cream);
+  color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.ff input:focus,.ff textarea:focus{border-color:var(--sea);box-shadow:0 0 0 3px rgba(46,135,171,.1)}
+.ff textarea{resize:vertical;min-height:110px}
+.char-count{font-size:.68rem;color:var(--muted);text-align:right;margin-top:.15rem}
+
+/* ── SUBMIT ── */
+.rv-submit{
+  width:100%;padding:1rem;margin-top:.5rem;
+  background:linear-gradient(135deg,var(--sea),#0d2f40);
+  color:#fff;border:none;border-radius:11px;
+  font-family:'Jost',sans-serif;font-size:.98rem;font-weight:600;
+  cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s;
+  box-shadow:0 4px 22px rgba(29,95,122,.3);
+  display:flex;align-items:center;justify-content:center;gap:.6rem;
+}
+.rv-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 30px rgba(29,95,122,.4)}
+.rv-submit:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.spinner{width:17px;height:17px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── ALERTS ── */
+.rv-alert{display:none;align-items:center;gap:.6rem;padding:.85rem 1.1rem;border-radius:10px;font-size:.88rem;margin-bottom:1.1rem}
+.rv-alert.on{display:flex}
+.rv-alert.err{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+.rv-alert.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d}
+
+/* ── SUCCESS SCREEN ── */
+.rv-success{display:none;text-align:center;padding:1rem 0}
+.rv-success.on{display:block}
+.rv-success-ico{font-size:3.5rem;margin-bottom:1rem}
+.rv-success h3{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--sea);margin-bottom:.5rem}
+.rv-success p{font-size:.9rem;color:var(--muted);line-height:1.6}
+
+/* ── FOOTER ── */
+footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--muted);border-top:1px solid var(--border)}
+footer a{color:var(--sea);text-decoration:none}
+</style>
+</head>
+<body>
+
+<header class="rv-header">
+  <div class="rv-header-eyebrow">🌊 Termoli · Adriatico</div>
+  <h1>Casa Pilla</h1>
+  <p>Condividi la tua esperienza e aiuta altri ospiti a scegliere</p>
+  <div class="rv-header-waves">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#f7f2ea" d="M0,40 C400,10 1040,60 1440,35 L1440,60 L0,60 Z"/>
+    </svg>
+  </div>
+</header>
+
+<main>
+  <div class="rv-card">
+    <div class="rv-card-title">La tua recensione</div>
+    <div class="rv-card-sub">Hai soggiornato a Casa Pilla? Raccontaci com'è andata — bastano poche righe.</div>
+
+    <div class="rv-alert err" id="rvErr"></div>
+
+    <!-- Form -->
+    <div id="rvForm">
+
+      <!-- Stelle -->
+      <span class="star-label">La tua valutazione *</span>
+      <div class="star-picker" id="starPicker">
+        <input type="radio" name="stars" id="s5" value="5"><label for="s5">★</label>
+        <input type="radio" name="stars" id="s4" value="4"><label for="s4">★</label>
+        <input type="radio" name="stars" id="s3" value="3"><label for="s3">★</label>
+        <input type="radio" name="stars" id="s2" value="2"><label for="s2">★</label>
+        <input type="radio" name="stars" id="s1" value="1"><label for="s1">★</label>
+      </div>
+      <div class="star-val" id="starVal"></div>
+
+      <div class="ff">
+        <label>Nome e cognome *</label>
+        <input type="text" id="rvName" placeholder="Mario Rossi" maxlength="60"/>
+      </div>
+
+      <div class="ff">
+        <label>La tua recensione *</label>
+        <textarea id="rvText" placeholder="Scrivi qui la tua esperienza… (min. 20 caratteri)" maxlength="500" oninput="updateChar()"></textarea>
+        <div class="char-count"><span id="charLeft">0</span>/500</div>
+      </div>
+
+      <button class="rv-submit" id="rvBtn" onclick="submitReview()">
+        <span id="rvBtnTxt">⭐ Pubblica recensione</span>
+        <div class="spinner" id="rvSpin"></div>
+      </button>
+    </div>
+
+    <!-- Successo -->
+    <div class="rv-success" id="rvSuccess">
+      <div class="rv-success-ico">🎉</div>
+      <h3>Grazie mille!</h3>
+      <p>La tua recensione è stata pubblicata.<br/>Ci fa molto piacere sapere com'è andata.<br/><br/>A presto su Casa Pilla! 🌊</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="index.html">← Torna a Casa Pilla</a>
+</footer>
+
+<script>
+const FIREBASE_CONFIG = {
+  apiKey:      'AIzaSyDiCvu5yjd-XAxlM9f-3ETOblQU96yAMqY',
+  authDomain:  'casa-pilla.firebaseapp.com',
+  databaseURL: 'https://casa-pilla-default-rtdb.europe-west1.firebasedatabase.app',
+  projectId:   'casa-pilla',
+};
+
+const STAR_LABELS = {
+  1:'😞 Non soddisfatto',
+  2:'😐 Nella media',
+  3:'🙂 Abbastanza bene',
+  4:'😊 Molto soddisfatto',
+  5:'🤩 Esperienza fantastica!'
+};
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+
+// Stelle
+document.querySelectorAll('.star-picker input').forEach(inp => {
+  inp.addEventListener('change', () => {
+    document.getElementById('starVal').textContent = STAR_LABELS[inp.value] || '';
+  });
+});
+
+function updateChar() {
+  const v = document.getElementById('rvText').value;
+  document.getElementById('charLeft').textContent = v.length;
+}
+
+function showErr(msg) {
+  const el = document.getElementById('rvErr');
+  el.textContent = '⚠️ ' + msg;
+  el.classList.add('on', 'err');
+}
+function hideErr() {
+  document.getElementById('rvErr').classList.remove('on');
+}
+
+async function submitReview() {
+  hideErr();
+  const name   = document.getElementById('rvName').value.trim();
+  const text   = document.getElementById('rvText').value.trim();
+  const stared = document.querySelector('.star-picker input:checked');
+  const rating = stared ? parseInt(stared.value) : 0;
+
+  if (!rating)          return showErr('Seleziona una valutazione.');
+  if (!name)            return showErr('Inserisci il tuo nome.');
+  if (text.length < 20) return showErr('Scrivi almeno 20 caratteri.');
+
+  const btn  = document.getElementById('rvBtn');
+  const txt  = document.getElementById('rvBtnTxt');
+  const spin = document.getElementById('rvSpin');
+  btn.disabled = true;
+  txt.style.display = 'none';
+  spin.style.display = 'block';
+
+  try {
+    await db.ref('reviews').push({ name, text, rating, date: new Date().toISOString() });
+    document.getElementById('rvForm').style.display = 'none';
+    document.getElementById('rvSuccess').classList.add('on');
+  } catch(e) {
+    showErr('Errore durante l\'invio. Riprova.');
+    btn.disabled = false;
+    txt.style.display = 'inline';
+    spin.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
